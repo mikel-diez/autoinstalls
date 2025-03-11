@@ -1,0 +1,82 @@
+#cloud-config
+autoinstall:
+  # version is an Autoinstall required field.
+  version: 1
+  
+  # Locale settings - Spanish
+  locale: es_ES.UTF-8
+  keyboard:
+    layout: es
+  
+  # Network configuration - Let NetworkManager handle it
+  network:
+    network:
+      version: 2
+      renderer: NetworkManager
+  
+  # Identity configuration
+  identity:
+    realname: 'Telecomunicaciones'
+    username: telecomunicaciones
+    # Password is 'mvpemqcv'
+    password: "$6$exampleSalt$uqrrrp0ZKmxP9.QOimDZhxX0UUNqcQaU3PD9.4yvl3AZgkBQnNXYv3JLPNh.PJcjNCQdBL6i.1h1uL/XH.A/B."
+    hostname: ubuntu-server
+  
+  # Storage configuration
+  storage:
+    layout:
+      name: direct
+  
+  # This adds the required desktop packages plus our specified ones
+  packages:
+    - build-essential
+    - docker.io
+    - docker-compose
+    - python3
+    - python3-pip
+    - language-pack-es
+    - openssh-server
+  
+  # Include any desired snaps
+  snaps:
+    - name: firefox
+    - name: docker
+  
+  # Use HWE kernel for better hardware support
+  early-commands:
+    - echo 'linux-generic-hwe-22.04' > /run/kernel-meta-package
+  
+  late-commands:
+    # Enable the boot splash
+    - >-
+      curtin in-target --
+      sed -i /etc/default/grub -e
+      's/GRUB_CMDLINE_LINUX_DEFAULT=".*/GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"/'
+    - curtin in-target -- update-grub
+    
+    # Let NetworkManager handle network
+    - rm /target/etc/netplan/00-installer-config*yaml
+    - >-
+      printf "network:\n  version: 2\n  renderer: NetworkManager"
+      > /target/etc/netplan/01-network-manager-all.yaml
+    
+    # Add user to docker group
+    - curtin in-target -- usermod -aG docker telecomunicaciones
+    
+    # Set up sudo access
+    - echo 'telecomunicaciones ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/telecomunicaciones
+    - chmod 440 /target/etc/sudoers.d/telecomunicaciones
+    
+    # Enable SSH and Docker services
+    - curtin in-target -- systemctl enable ssh
+    - curtin in-target -- systemctl enable docker
+  
+  # Additional user-data configuration
+  user-data:
+    locale: es_ES.UTF-8
+    timezone: Europe/Madrid
+    users:
+      - name: telecomunicaciones
+        groups: [adm, sudo, docker]
+        shell: /bin/bash
+        sudo: ALL=(ALL) NOPASSWD:ALL
