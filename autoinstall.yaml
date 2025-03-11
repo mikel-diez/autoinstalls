@@ -1,55 +1,30 @@
-# Required configuration
+#cloud-config
 autoinstall:
-    version: 1
-    identity:
-        realname: "Telecomunicaciones"
-        username: telecomunicaciones
-        password: "$6$exampleSalt$uqrrrp0ZKmxP9.4yvl3AZgkBQnNXYv3JLPNh.PJcjNCQdBL6i.1h1uL/XH.A/B." # Replace with your actual password hash
-        hostname: ubuntu-server
-
-# Optional configuration
-    keyboard:
-        layout: "es"
-        variant: ""
-    locale: "es_ES.UTF-8"
-    timezone: "Europe/Madrid"
-    
-    storage:
-        layout:
-            name: direct
-    
-    network:
-        version: 2
-        renderer: NetworkManager
-        ethernets:
-            wired:
-                match:
-                    name: e*
-                dhcp4: true
-                dhcp6: true
-    
-    ssh:
-        install-server: true
-        allow-pw: true
-    
-    packages:
-        - build-essential
-        - docker.io
-        - docker-compose
-        - python3
-        - python3-pip
-        - language-pack-es
-        - openssh-server
-    
-    snaps:
-        - name: docker
-    
-    updates: all
-    shutdown: reboot
-    
-    late-commands:
-        - echo 'telecomunicaciones ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/telecomunicaciones
-        - chmod 440 /target/etc/sudoers.d/telecomunicaciones
-        - curtin in-target -- usermod -aG docker telecomunicaciones
-        - curtin in-target -- systemctl enable ssh
-        - curtin in-target -- systemctl enable docker
+  version: 1
+  locale: es_ES.UTF-8
+  keyboard:
+    layout: es
+  identity:
+    hostname: ubuntu-server
+    username: telecomunicaciones
+    password: "$6$exampleSalt$uqrrrp0ZKmxP9.4yvl3AZgkBQnNXYv3JLPNh.PJcjNCQdBL6i.1h1uL/XH.A/B."
+  storage:
+    layout:
+      name: direct
+  packages:
+    - build-essential
+    - docker.io
+    - docker-compose
+    - python3
+    - python3-pip
+    - language-pack-es
+    - openssh-server
+  ssh:
+    install-server: true
+    allow-pw: true
+  late-commands:
+    - echo 'telecomunicaciones ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/telecomunicaciones
+    - chmod 440 /target/etc/sudoers.d/telecomunicaciones
+    - curtin in-target -- usermod -aG docker telecomunicaciones
+    - curtin in-target -- systemctl enable ssh
+    - curtin in-target -- systemctl enable docker
